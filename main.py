@@ -5,7 +5,7 @@ import random
 
 
 pygame.init()
-size = (601, 601)
+size = (701, 701)
 screen = pygame.display.set_mode(size)
 
 
@@ -26,7 +26,7 @@ def load_image(name, size, angle=0, colorkey=None, direct="images"):
     image = pygame.transform.rotate(image, angle)
     return image
 
-cell_size = 50
+cell_size = 45
 tile_images = {
     "Глинянный карьер": load_image("Глинянный карьер.png", (cell_size * 2, cell_size * 2), 30, - 1),
     "Гора": load_image("Гора.png", (cell_size * 2, cell_size * 2), 30, - 1),
@@ -100,6 +100,48 @@ class Board:
 
     def on_click(self, cell_coords):
         print(cell_coords)
+
+
+class Player:
+    def __init__(self, color):
+        self.wood = 0
+        self.stone = 0
+        self.clay = 0
+        self.wheat = 0
+        self.sheep = 0
+        self.win_points = 0
+        self.color = color
+        self.list_settlements = []
+        self.list_cities = []
+        self.roads = []
+
+
+
+class GameBot:
+    def __init__(self, color):
+        self.wood = 0
+        self.stone = 0
+        self.clay = 0
+        self.wheat = 0
+        self.sheep = 0
+        self.win_points = 0
+        self.color = color
+
+
+
+class Game:
+    def __init__(self):
+        self.turn = 0
+        self.player = Player()
+        self.bot = GameBot()
+        self.getting_res = False
+        self.trading = False
+        self.building = False
+
+    def play(self):
+        pass
+
+
 
 
 board = Board()
