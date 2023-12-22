@@ -3,7 +3,6 @@ import sys
 import os
 import random
 
-
 pygame.init()
 size = (701, 701)
 screen = pygame.display.set_mode(size)
@@ -26,14 +25,15 @@ def load_image(name, size, angle=0, colorkey=None, direct="images"):
     image = pygame.transform.rotate(image, angle)
     return image
 
-cell_size = 45
+
+CELL_SIZE = 45
 tile_images = {
-    "Глинянный карьер": load_image("Глинянный карьер.png", (cell_size * 2, cell_size * 2), 30, - 1),
-    "Гора": load_image("Гора.png", (cell_size * 2, cell_size * 2), 30, - 1),
-    "Лес": load_image("Лес.png", (cell_size * 2, cell_size * 2), 30, - 1),
-    "Пашня": load_image("Пашня.png", (cell_size * 2, cell_size * 2), 30, - 1),
-    "Пустыня": load_image("Пустыня.png", (cell_size * 2, cell_size * 2), 30, - 1),
-    "Луг": load_image("Луг.png", (cell_size * 2, cell_size * 2), 30, - 1)
+    "Глинянный карьер": load_image("Глинянный карьер.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1),
+    "Гора": load_image("Гора.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1),
+    "Лес": load_image("Лес.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1),
+    "Пашня": load_image("Пашня.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1),
+    "Пустыня": load_image("Пустыня.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1),
+    "Луг": load_image("Луг.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1)
 }
 tile_group = pygame.sprite.Group()
 
@@ -55,11 +55,12 @@ class Board:
             for x in range(len(self.board[y])):
                 if not (x == 2 and y == 2):
                     self.board[y][x] = b.pop(random.randint(0, len(b) - 1))
-        self.cell_size = cell_size
+
+        self.cell_size = CELL_SIZE
         self.lis_c_coords = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]]
         self.crossroad_coords = set()
 
-    def render(self, screen):
+    def render(self, screen, player_roads, bot_roads, player_construction, player_i, bot_construction, bot_i):
         a = self.cell_size
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
@@ -77,12 +78,24 @@ class Board:
                 p5 = (x0 + (a * 1.73 // 2), y0 + (3 * a) // 2)
                 p6 = (x0, y0 + a)
                 r = (1.73 * a) // 2
-                tile_group.draw(screen)
                 if len(self.lis_c_coords) < 19:
                     self.lis_c_coords[y][x] = (x0 + r + 1, y0 + int(r / 1.73) + 2)
                 for point in [p1, p2, p3, p4, p5, p6]:
                     self.crossroad_coords.add(point)
-
+        tile_group.draw(screen)
+        for settlement in player_construction[:player_i]:
+            pygame.draw.circle(screen, (255, 0, 0), settlement, CELL_SIZE // 4)
+        for citi in player_construction[player_i:]:
+            pygame.draw.circle(screen, (255, 0, 0), citi, CELL_SIZE // 3)
+        for settlement in bot_construction[:bot_i]:
+            pygame.draw.circle(screen, (0, 0, 255), settlement, CELL_SIZE // 4)
+        for citi in bot_construction[bot_i:]:
+            pygame.draw.circle(screen, (0, 0, 255), citi, CELL_SIZE // 3)
+        for p1, p2 in player_roads:
+            pygame.draw.line(screen, (255, 0, 0), p1, p2, 500)
+        for p1, p2 in bot_roads:
+            pygame.draw.line(screen, (0, 0, 255), p1, p2, 5)
+    # __________________________________________________________________-
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
         self.on_click(cell)
@@ -100,51 +113,142 @@ class Board:
 
     def on_click(self, cell_coords):
         print(cell_coords)
+    # _____________________________________________________
 
 
 class Player:
-    def __init__(self, color):
+    def __init__(self):
         self.wood = 0
         self.stone = 0
         self.clay = 0
         self.wheat = 0
         self.sheep = 0
         self.win_points = 0
-        self.color = color
+        self.color = (255, 0, 0)
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
 
+    def build_settlement(self, bot_construction, list_crossroad_coords, pos, start=False):
+        a = self.when_build_settlement(bot_construction, list_crossroad_coords, start)
+        if start:
+            for x, y in a:
+                if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 9:
+                    self.list_settlements.append((x, y))
+                    self.win_points += 1
+                    print(self.win_points)
+                    return True
+        else:
+            pass
+
+    def build_road(self, bot_roads, list_crossroad_coords, pos, start=False):
+        a = self.when_build_road(bot_roads, list_crossroad_coords, start)
+        if start:
+            for x, y in a:
+                if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 1.21:
+                    self.roads.append([self.list_settlements[-1], (x, y)])
+                    return True
+        else:
+            pass
+
+    def when_build_settlement(self, bot_construction, list_crossroad_coords, start=False):
+        construction = bot_construction + self.list_settlements + self.list_cities
+        a = []
+        if start:
+            for x, y in list_crossroad_coords:
+                for x1, y1 in construction:
+                    if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                        break
+                else:
+                    a.append((x, y))
+        else:
+            pass
+        return a
+
+    def when_build_road(self, bot_roads, list_crossroad_coords, start=False):
+        a = []
+        if start:
+            x1, y1 = self.list_settlements[-1]
+            for x, y in list_crossroad_coords:
+                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                    a.append((x, y))
+        else:
+            pass
+        return a
 
 
 class GameBot:
-    def __init__(self, color):
+    def __init__(self):
         self.wood = 0
         self.stone = 0
         self.clay = 0
         self.wheat = 0
         self.sheep = 0
         self.win_points = 0
-        self.color = color
+        self.list_settlements = []
+        self.list_cities = []
+        self.roads = []
 
+    def build_settlement(self, start=False):
+        if start:
+            pass
+
+    def build_road(self, start=False):
+        if start:
+            pass
 
 
 class Game:
     def __init__(self):
         self.turn = 0
+        self.board = Board()
         self.player = Player()
         self.bot = GameBot()
         self.getting_res = False
         self.trading = False
         self.building = False
+        self.starting = True
+        self.start_step = 0
 
     def play(self):
         pass
 
+    def start(self, pos):
+
+        if self.start_step == 0:
+            if self.player.build_settlement([], self.board.crossroad_coords, pos, self.starting):
+                self.start_step += 1
+                return
+        if self.start_step == 1:
+            if self.player.build_road([], self.board.crossroad_coords, pos, self.starting):
+                self.start_step += 1
+                return
+        for i in range(2):
+            if self.start_step == 2 + i * 2:
+                if self.bot.build_settlement(self.starting):
+                    self.start_step += 1
+            if self.start_step == 3 + i * 2:
+                if self.bot.build_road(self.starting):
+                    self.start_step += 1
+        if self.start_step == 6:
+            if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos,
+                                            self.starting):
+                self.start_step += 1
+                return
+        if self.start_step == 7:
+            if self.player.build_road(self.bot.roads, self.board.crossroad_coords, pos, self.starting):
+                self.start_step += 1
+                self.starting = False
+
+    def render(self, screen):
+        pr, br = self.player.roads, self.bot.roads
+        pc = self.player.list_settlements + self.player.list_cities
+        bc = self.bot.list_settlements + self.bot.list_cities
+        pi, bi = len(self.player.list_settlements), len(self.bot.list_settlements)
+        self.board.render(screen, pr, br, pc, pi, bc, bi)
 
 
-
-board = Board()
+game = Game()
 screen.fill((0, 0, 255))
 run = True
 
@@ -153,7 +257,8 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            board.get_click(event.pos)
-    board.render(screen)
+            if game.starting:
+                game.start(event.pos)
+    game.render(screen)
     pygame.display.flip()
 pygame.quit()
