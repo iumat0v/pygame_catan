@@ -91,10 +91,10 @@ class Board:
             pygame.draw.circle(screen, (0, 0, 255), settlement, CELL_SIZE // 4)
         for citi in bot_construction[bot_i:]:
             pygame.draw.circle(screen, (0, 0, 255), citi, CELL_SIZE // 3)
-        for p1, p2 in player_roads:
-            pygame.draw.line(screen, (255, 0, 0), p1, p2, 500)
-        for p1, p2 in bot_roads:
-            pygame.draw.line(screen, (0, 0, 255), p1, p2, 5)
+        for point1, point2 in player_roads:
+            pygame.draw.line(screen, (255, 0, 0), point1, point2, 5)
+        for point1, point2 in bot_roads:
+            pygame.draw.line(screen, (0, 0, 255), point1, point2, 5)
     # __________________________________________________________________-
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
@@ -124,13 +124,12 @@ class Player:
         self.wheat = 0
         self.sheep = 0
         self.win_points = 0
-        self.color = (255, 0, 0)
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
 
-    def build_settlement(self, bot_construction, list_crossroad_coords, pos, start=False):
-        a = self.when_build_settlement(bot_construction, list_crossroad_coords, start)
+    def build_settlement(self, bot_construction, list_crossroad_coord, pos, start=False):
+        a = self.when_build_settlement(bot_construction, list_crossroad_coord, start)
         if start:
             for x, y in a:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 9:
@@ -141,8 +140,8 @@ class Player:
         else:
             pass
 
-    def build_road(self, bot_roads, list_crossroad_coords, pos, start=False):
-        a = self.when_build_road(bot_roads, list_crossroad_coords, start)
+    def build_road(self, bot_roads, list_crossroad_coord, pos, start=False):
+        a = self.when_build_road(bot_roads, list_crossroad_coord, start)
         if start:
             for x, y in a:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 1.21:
@@ -151,13 +150,13 @@ class Player:
         else:
             pass
 
-    def when_build_settlement(self, bot_construction, list_crossroad_coords, start=False):
+    def when_build_settlement(self, bot_construction, list_crossroad_coord, start=False):
         construction = bot_construction + self.list_settlements + self.list_cities
         a = []
         if start:
-            for x, y in list_crossroad_coords:
+            for x, y in list_crossroad_coord:
                 for x1, y1 in construction:
-                    if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                    if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2 * 1.21:
                         break
                 else:
                     a.append((x, y))
@@ -165,13 +164,14 @@ class Player:
             pass
         return a
 
-    def when_build_road(self, bot_roads, list_crossroad_coords, start=False):
+    def when_build_road(self, bot_roads, list_crossroad_coord, start=False):
         a = []
         if start:
             x1, y1 = self.list_settlements[-1]
-            for x, y in list_crossroad_coords:
+            for x, y in list_crossroad_coord:
                 if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
-                    a.append((x, y))
+                    if x1 != x or y != y1:
+                        a.append((x, y))
         else:
             pass
         return a
@@ -189,13 +189,44 @@ class GameBot:
         self.list_cities = []
         self.roads = []
 
-    def build_settlement(self, start=False):
+    def build_settlement(self, player_construction, list_crossroad_coord, start=False):
         if start:
+            pass
+        else:
             pass
 
-    def build_road(self, start=False):
+    def build_road(self, player_roads, list_crossroad_coord, start=False):
         if start:
             pass
+        else:
+            pass
+
+    def when_build_settlement(self, player_construction, list_crossroad_coord, start=False):
+        construction = player_construction + self.list_settlements + self.list_cities
+        a = []
+        if start:
+            for x, y in list_crossroad_coord:
+                for x1, y1 in construction:
+                    if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                        break
+                else:
+                    a.append((x, y))
+        else:
+            pass
+        return a
+
+    def when_build_road(self, player_roads, list_crossroad_coord, start=False):
+        a = []
+        if start:
+            x1, y1 = self.list_settlements[-1]
+            for x, y in list_crossroad_coord:
+                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                    if x1 != x or y != y1:
+                        a.append((x, y))
+        else:
+            pass
+        return a
+        pass
 
 
 class Game:
@@ -222,17 +253,15 @@ class Game:
         if self.start_step == 1:
             if self.player.build_road([], self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
-                return
         for i in range(2):
             if self.start_step == 2 + i * 2:
-                if self.bot.build_settlement(self.starting):
-                    self.start_step += 1
+                self.bot.build_settlement(self.player.list_settlements, self.board.crossroad_coords, self.starting)
+                self.start_step += 1
             if self.start_step == 3 + i * 2:
-                if self.bot.build_road(self.starting):
-                    self.start_step += 1
+                self.bot.build_road([], self.board.crossroad_coords, self.starting)
+                self.start_step += 1
         if self.start_step == 6:
-            if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos,
-                                            self.starting):
+            if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
                 return
         if self.start_step == 7:
@@ -251,6 +280,8 @@ class Game:
 game = Game()
 screen.fill((0, 0, 255))
 run = True
+clock = pygame.time.Clock()
+FPS = 2
 
 while run:
     for event in pygame.event.get():
@@ -260,5 +291,6 @@ while run:
             if game.starting:
                 game.start(event.pos)
     game.render(screen)
+    clock.tick(FPS)
     pygame.display.flip()
 pygame.quit()
