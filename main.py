@@ -8,6 +8,18 @@ size = (701, 701)
 screen = pygame.display.set_mode(size)
 
 
+def show_text(screen, tex, pos):
+    color = (0, 0, 0)
+    if tex in "68":
+        color = (255, 0, 0)
+    font = pygame.font.Font(None, 30)
+    text = font.render(tex, 1, color)
+    screen.blit(text, pos)
+
+
+def start_screen():
+    pass
+
 def load_image(name, size, angle=0, colorkey=None, direct="images"):
     fullname = os.path.join(direct, name)
     if not os.path.isfile(fullname):
@@ -36,6 +48,18 @@ tile_images = {
     "Луг": load_image("Луг.png", (CELL_SIZE * 2, CELL_SIZE * 2), 30, - 1)
 }
 tile_group = pygame.sprite.Group()
+VER = {
+    "2": 1,
+    "3": 2,
+    "4": 3,
+    "5": 4,
+    "6": 5,
+    "8": 5,
+    "9": 4,
+    "10": 3,
+    "11": 2,
+    "12": 1
+}
 
 
 class Tile(pygame.sprite.Sprite):
@@ -49,40 +73,51 @@ class Tile(pygame.sprite.Sprite):
 
 class Board:
     def __init__(self):
-        self.board = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]]
-        b = ["Глинянный карьер"] * 3 + ["Гора"] * 3 + ["Лес", "Пашня", "Луг"] * 4
-        for y in range(len(self.board)):
-            for x in range(len(self.board[y])):
-                if not (x == 2 and y == 2):
-                    self.board[y][x] = b.pop(random.randint(0, len(b) - 1))
-
+        self.board = self.create_bord()
         self.cell_size = CELL_SIZE
         self.lis_c_coords = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]]
         self.crossroad_coords = set()
 
+    def create_bord(self):
+        a = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]]
+        b = ["Глинянный карьер"] * 3 + ["Гора"] * 3 + ["Лес", "Пашня", "Луг"] * 4
+        c = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
+        for y in range(len(a)):
+            for x in range(len(a[y])):
+                if not (x == 2 and y == 2):
+                    k = len(b) - 1
+                    a[y][x] = b.pop(random.randint(0, k)), c.pop(random.randint(0, k))
+        return a
+
     def render(self, screen, player_roads, bot_roads, player_construction, player_i, bot_construction, bot_i):
         a = self.cell_size
+        w = []
         for y in range(len(self.board)):
             for x in range(len(self.board[y])):
-                x0 = int(size[0] * 0.5) - (len(self.board[y]) * a * 1.73) // 2 + 20 + int(x * a * 1.73) - 20
-                y0 = size[1] // 4 + int(a * 1.5) * y - 20
+                x0 = size[0] * 0.5 - (len(self.board[y]) * a * 1.73) / 2 + 20 + x * a * 1.73 - 20
+                y0 = size[1] / 4 + a * 1.5 * y - 20
                 if x == 2 and y == 2:
                     type1 = "Пустыня"
                 else:
-                    type1 = self.board[y][x]
-                Tile(type1, x0 - a // 2, y0 - a + 3)
+                    type1 = self.board[y][x][0]
+                Tile(type1, int(x0 - a / 2), int(y0 - a + 3))
+                r = (1.73 * a) / 2
+                if x != 2 or y != 2:
+                    w.append([str(self.board[y][x][1]), (int(x0 + r + 1), int(y0 + r / 1.73 + 2))])
                 p1 = (x0, y0)
-                p2 = (x0 + (a * 1.73 // 2), y0 - a // 2)
-                p3 = (int(x0 + a * 1.73), y0)
-                p4 = (int(x0 + a * 1.73), y0 + a)
-                p5 = (x0 + (a * 1.73 // 2), y0 + (3 * a) // 2)
+                p2 = (x0 + (a * 1.73 / 2), y0 - a / 2)
+                p3 = (x0 + a * 1.73, y0)
+                p4 = (x0 + a * 1.73, y0 + a)
+                p5 = (x0 + (a * 1.73 / 2), y0 + (3 * a) / 2)
                 p6 = (x0, y0 + a)
-                r = (1.73 * a) // 2
+                #r = (1.73 * a) / 2
                 if len(self.lis_c_coords) < 19:
-                    self.lis_c_coords[y][x] = (x0 + r + 1, y0 + int(r / 1.73) + 2)
+                    self.lis_c_coords[y][x] = (x0 + r + 1, y0 + r / 1.73 + 2)
                 for point in [p1, p2, p3, p4, p5, p6]:
                     self.crossroad_coords.add(point)
         tile_group.draw(screen)
+        for el in w:
+            show_text(screen, el[0], el[1])
         for settlement in player_construction[:player_i]:
             pygame.draw.circle(screen, (255, 0, 0), settlement, CELL_SIZE // 4)
         for citi in player_construction[player_i:]:
@@ -95,7 +130,7 @@ class Board:
             pygame.draw.line(screen, (255, 0, 0), point1, point2, 5)
         for point1, point2 in bot_roads:
             pygame.draw.line(screen, (0, 0, 255), point1, point2, 5)
-    # __________________________________________________________________-
+    # __________________________________________________________________
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
         self.on_click(cell)
@@ -170,7 +205,7 @@ class Player:
             x1, y1 = self.list_settlements[-1]
             for x, y in list_crossroad_coord:
                 if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
-                    if x1 != x or y != y1:
+                    if int(x1) != int(x) or int(y) != int(y1):
                         a.append((x, y))
         else:
             pass
@@ -188,10 +223,20 @@ class GameBot:
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
+        self.mast = []
 
-    def build_settlement(self, player_construction, list_crossroad_coord, start=False):
+    def build_settlement(self, player_construction, board: Board, start=False):
+        a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
+        b = []
         if start:
-            pass
+            for x, y in a:
+                c = []
+                for xc, yc in board.lis_c_coords:
+                    if (x - xc) ** 2 + (y - yc) ** 2 <= CELL_SIZE ** 2 * 1.21:
+                        c.append(board.get_cell((xc, yc)))
+                        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
         else:
             pass
 
@@ -220,8 +265,8 @@ class GameBot:
         if start:
             x1, y1 = self.list_settlements[-1]
             for x, y in list_crossroad_coord:
-                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
-                    if x1 != x or y != y1:
+                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2 / 1.21:
+                    if int(x1) != int(x) or int(y) != int(y1):
                         a.append((x, y))
         else:
             pass
@@ -255,7 +300,7 @@ class Game:
                 self.start_step += 1
         for i in range(2):
             if self.start_step == 2 + i * 2:
-                self.bot.build_settlement(self.player.list_settlements, self.board.crossroad_coords, self.starting)
+                self.bot.build_settlement(self.player.list_settlements, self.board, self.starting)
                 self.start_step += 1
             if self.start_step == 3 + i * 2:
                 self.bot.build_road([], self.board.crossroad_coords, self.starting)
@@ -281,7 +326,7 @@ game = Game()
 screen.fill((0, 0, 255))
 run = True
 clock = pygame.time.Clock()
-FPS = 2
+FPS = 10
 
 while run:
     for event in pygame.event.get():
