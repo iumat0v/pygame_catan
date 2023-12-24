@@ -229,12 +229,39 @@ class GameBot:
         a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
         b = []
         if start:
-            for x, y in a:
-                c = []
-                for xc, yc in board.lis_c_coords:
-                    if (x - xc) ** 2 + (y - yc) ** 2 <= CELL_SIZE ** 2 * 1.21:
-                        c.append(board.get_cell((xc, yc)))
-                        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            pass
+            for crossroad in a:
+                x1, y1 = crossroad
+                tile = {
+                    "Глинянный карьер": 0,
+                    "Гора": 0,
+                    "Лес": 0,
+                    "Пашня": 0,
+                    "Луг": 0
+                }
+                prior = 0
+                for cell in board.lis_c_coords:
+                    for x, y in cell:
+                        if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2 * 1.21:
+                            x, y = board.get_cell((x, y))
+                            if board.board[y][x] == 0:
+                                continue
+                            prior += int(board.board[y][x][1]) / 1.7
+                            if tile[board.board[y][x][0]] == 0:
+                                prior += 4
+                            elif tile[board.board[y][x][0]] == 1:
+                                prior += -1
+                            elif tile[board.board[y][x][0]] == 2:
+                                prior += -3
+                            tile[board.board[y][x][0]] += 1
+                    b.append((crossroad, prior))
+            b = sorted(b, key=lambda x: -x[1])
+            print("b:", b)
+            self.list_settlements.append(b[0][0])
+            self.win_points += 1
+
+
+
 
 
         else:
