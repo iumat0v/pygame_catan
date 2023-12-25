@@ -212,7 +212,7 @@ class Player:
         return a
 
 
-class GameBot:
+class GameBot(Player):
     def __init__(self):
         self.wood = 0
         self.stone = 0
@@ -272,33 +272,6 @@ class GameBot:
             pass
         else:
             pass
-
-    def when_build_settlement(self, player_construction, list_crossroad_coord, start=False):
-        construction = player_construction + self.list_settlements + self.list_cities
-        a = []
-        if start:
-            for x, y in list_crossroad_coord:
-                for x1, y1 in construction:
-                    if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
-                        break
-                else:
-                    a.append((x, y))
-        else:
-            pass
-        return a
-
-    def when_build_road(self, player_roads, list_crossroad_coord, start=False):
-        a = []
-        if start:
-            x1, y1 = self.list_settlements[-1]
-            for x, y in list_crossroad_coord:
-                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2 / 1.21:
-                    if int(x1) != int(x) or int(y) != int(y1):
-                        a.append((x, y))
-        else:
-            pass
-        return a
-        pass
 
 
 class Game:
