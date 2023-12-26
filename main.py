@@ -61,7 +61,6 @@ VER = {
     "12": 1
 }
 
-
 class Tile(pygame.sprite.Sprite):
     def __init__(self, type1, pos_x, pos_y):
         super().__init__(tile_group)
@@ -246,11 +245,11 @@ class GameBot(Player):
                             x, y = board.get_cell((x, y))
                             if board.board[y][x] == 0:
                                 continue
-                            prior += int(board.board[y][x][1]) / 1.7
+                            prior += VER[str(board.board[y][x][1])] / 1.5
                             if tile[board.board[y][x][0]] == 0:
                                 prior += 4
                             elif tile[board.board[y][x][0]] == 1:
-                                prior += -1
+                                prior += 0
                             elif tile[board.board[y][x][0]] == 2:
                                 prior += -3
                             tile[board.board[y][x][0]] += 1
@@ -259,17 +258,25 @@ class GameBot(Player):
             print("b:", b)
             self.list_settlements.append(b[0][0])
             self.win_points += 1
-
-
-
-
-
         else:
             pass
 
     def build_road(self, player_roads, list_crossroad_coord, start=False):
+        a = self.when_build_road(player_roads, list_crossroad_coord, start)
         if start:
-            pass
+            print(self.list_settlements)
+            x0, y0 = self.list_settlements[0]
+            x1, y1 = self.list_settlements[-1]
+            b = []
+            for x, y in a:
+                prior = 0
+                if x0 <= x <= x1 or x0 >= x >= x1:
+                    prior += 1
+                if y0 <= y <= y1 or y0 >= y >= y1:
+                    prior += 1
+                b.append([(x, y), prior])
+            b = sorted(b, key=lambda x: -x[1])
+            self.roads.append([(x1, y1), (x, y)])
         else:
             pass
 
