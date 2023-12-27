@@ -2,10 +2,27 @@ import pygame
 import sys
 import os
 import random
+import pygame_gui
 
 pygame.init()
 size = (701, 701)
 screen = pygame.display.set_mode(size)
+
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+
+def exit(manager):
+    dialog = pygame_gui.windows.UIConfirmationDialog(
+        rect=pygame.Rect(250, 250, 300, 300),
+        manager=manager,
+        window_title="Подтверждение выхода",
+        action_long_desc="Вы действительно хотите выйти?",
+        action_short_name="Ok",
+        blocking=True
+    )
 
 
 def show_text(screen, tex, pos):
@@ -16,9 +33,6 @@ def show_text(screen, tex, pos):
     text = font.render(tex, 1, color)
     screen.blit(text, pos)
 
-
-def start_screen():
-    pass
 
 def load_image(name, size, angle=0, colorkey=None, direct="images"):
     fullname = os.path.join(direct, name)
@@ -36,6 +50,43 @@ def load_image(name, size, angle=0, colorkey=None, direct="images"):
     image = pygame.transform.scale(image, size)
     image = pygame.transform.rotate(image, angle)
     return image
+
+
+def start_screen():
+    manager = pygame_gui.UIManager(size)
+    fon = load_image("fon.jpg", size)
+    screen.blit(fon, (0, 0))
+    switch_start = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((10, size[1] - 110), (150, 50)),
+        text="Старт",
+        manager=manager
+    )
+    switch_exit = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((10, size[1] - 60), (150, 50)),
+        text="Выход из игры",
+        manager=manager
+    )
+    while True:
+        time_delta = clock.tick(60) / 1000
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit(manager)
+            if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                    terminate()
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == switch_start:
+                        return
+                    if event.ui_element == switch_exit:
+                        exit(manager)
+
+            manager.process_events(event)
+        screen.blit(fon, (0, 0))
+        manager.update(time_delta)
+        manager.draw_ui(screen)
+        pygame.display.flip()
+        clock.tick(FPS)
+    pass
 
 
 CELL_SIZE = 45
@@ -228,9 +279,7 @@ class GameBot(Player):
         a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
         b = []
         if start:
-            pass
             for crossroad in a:
-                x1, y1 = crossroad
                 tile = {
                     "Глинянный карьер": 0,
                     "Гора": 0,
@@ -238,6 +287,7 @@ class GameBot(Player):
                     "Пашня": 0,
                     "Луг": 0
                 }
+                x1, y1 = crossroad
                 prior = 0
                 for cell in board.lis_c_coords:
                     for x, y in cell:
@@ -254,7 +304,7 @@ class GameBot(Player):
                                 prior += -3
                             tile[board.board[y][x][0]] += 1
                     b.append((crossroad, prior))
-            b = sorted(b, key=lambda x: -x[1])
+            b = sorted(b, key=lambda x: x[1], reverse=True)
             print("b:", b)
             self.list_settlements.append(b[0][0])
             self.win_points += 1
@@ -275,7 +325,7 @@ class GameBot(Player):
                 if y0 <= y <= y1 or y0 >= y >= y1:
                     prior += 1
                 b.append([(x, y), prior])
-            b = sorted(b, key=lambda x: -x[1])
+            b = sorted(b, key=lambda x: x[1], reverse=True)
             self.roads.append([(x1, y1), (x, y)])
         else:
             pass
@@ -329,20 +379,31 @@ class Game:
         self.board.render(screen, pr, br, pc, pi, bc, bi)
 
 
+pygame.display.set_caption("Catan")
+clock = pygame.time.Clock()
+FPS = 10
+start_screen()
 game = Game()
 screen.fill((0, 0, 255))
 run = True
-clock = pygame.time.Clock()
-FPS = 10
+manager = pygame_gui.UIManager(size)
 
 while run:
+    time_delta = clock.tick(60) / 1000
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            exit(manager)
         if event.type == pygame.MOUSEBUTTONDOWN:
             if game.starting:
                 game.start(event.pos)
+        if event.type == pygame.USEREVENT:
+            if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                terminate()
+        manager.process_events(event)
+    screen.fill((0, 0, 255))
     game.render(screen)
+    manager.update(time_delta)
+    manager.draw_ui(screen)
     clock.tick(FPS)
     pygame.display.flip()
 pygame.quit()
