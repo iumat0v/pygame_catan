@@ -355,6 +355,7 @@ class Game:
         if self.start_step == 1:
             if self.player.build_road([], self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
+        self.turn = 1
         for i in range(2):
             if self.start_step == 2 + i * 2:
                 self.bot.build_settlement(self.player.list_settlements, self.board, self.starting)
@@ -362,6 +363,7 @@ class Game:
             if self.start_step == 3 + i * 2:
                 self.bot.build_road([], self.board.crossroad_coords, self.starting)
                 self.start_step += 1
+        self.turn = 0
         if self.start_step == 6:
             if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
@@ -387,6 +389,21 @@ game = Game()
 screen.fill((0, 0, 255))
 run = True
 manager = pygame_gui.UIManager(size)
+# ---------------------------
+label1 = pygame_gui.elements.UILabel(
+    relative_rect=pygame.Rect(10, size[1] - 70, 150, 60),
+    text='Player1',
+    manager=manager
+)
+label2 = pygame_gui.elements.UILabel(
+    relative_rect=pygame.Rect(0, 0, 180, 100),
+    text='Bot',
+    manager=manager
+)
+im_rect_player1 = load_image("Прямоугольник.png", (150, 60))
+im_rect_bot = load_image("ПрямоугольникBot.png", (180, 100))
+im_hint = load_image("Подсказка.png", (370, 200), colorkey=-1)
+# ------------------------------
 
 while run:
     time_delta = clock.tick(60) / 1000
@@ -401,6 +418,11 @@ while run:
                 terminate()
         manager.process_events(event)
     screen.fill((0, 0, 255))
+    # ---------------
+    screen.blit(im_rect_player1, (10, size[1] - 70))
+    screen.blit(im_hint, (size[0] - 370, size[1] - 200))
+    screen.blit(im_rect_bot, (3, 0))
+    # ---------------
     game.render(screen)
     manager.update(time_delta)
     manager.draw_ui(screen)
