@@ -350,10 +350,11 @@ class Game:
         pass
 
     def start(self, pos):
-
+        global TEXT
         if self.start_step == 0:
             if self.player.build_settlement([], self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
+                TEXT = " Вы строите дорогу"
                 return
         if self.start_step == 1:
             if self.player.build_road([], self.board.crossroad_coords, pos, self.starting):
@@ -368,13 +369,16 @@ class Game:
                 self.start_step += 1
         self.turn = 0
         if self.start_step == 6:
+            TEXT = " Вы строите поселение"
             if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
+                TEXT = " Вы строите дорогу"
                 return
         if self.start_step == 7:
             if self.player.build_road(self.bot.roads, self.board.crossroad_coords, pos, self.starting):
                 self.start_step += 1
                 self.starting = False
+                TEXT = ""
 
     def render(self, screen):
         pr, br = self.player.roads, self.bot.roads
@@ -386,12 +390,13 @@ class Game:
 
 pygame.display.set_caption("Catan")
 clock = pygame.time.Clock()
-#FPS = 10
+# FPS = 10
 start_screen(screen)
 game = Game()
 screen.fill((0, 0, 255))
 run = True
 manager = pygame_gui.UIManager(size)
+# all_sprites = pygame.sprite.Group()
 # ---------------------------
 label1 = pygame_gui.elements.UILabel(
     relative_rect=pygame.Rect(10, size[1] - 70, 150, 60),
@@ -403,6 +408,11 @@ label2 = pygame_gui.elements.UILabel(
     text='Bot',
     manager=manager
 )
+'''label_scroll = pygame_gui.elements.UILabel(
+    relative_rect=pygame.Rect(size[0] // 4 + 10, 5, size[0] // 2 - 20, 120),
+    text='!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+    manager=manager
+)'''
 btn_road = pygame_gui.elements.UIButton(
     relative_rect=pygame.Rect(size[0] - 215, size[1] - 165, 170, 40),
     text="Построить",
@@ -426,6 +436,7 @@ btn_cards = pygame_gui.elements.UIButton(
 im_rect_player1 = load_image("Прямоугольник.png", (150, 60))
 im_rect_bot = load_image("ПрямоугольникBot.png", (180, 100))
 im_cost = load_image("cost1.png", (370, 200), colorkey=-1)
+im_scroll = load_image("свиток.png", (size[0] // 2, 130), colorkey=-1)
 # ------------------------------
 
 while run:
@@ -445,6 +456,9 @@ while run:
     screen.blit(im_rect_player1, (10, size[1] - 70))
     screen.blit(im_cost, (size[0] - 370, size[1] - 200))
     screen.blit(im_rect_bot, (3, 0))
+    screen.blit(im_scroll, (size[0] // 4, 0))
+    show_text(screen, TEXT, (size[0] // 4 + 60, 50), color=(50, 50, 50))
+    show_text(screen, TITLE, (size[0] * 4 // 9, 30))
     # ---------------
     game.render(screen)
     manager.update(time_delta)

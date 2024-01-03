@@ -1,7 +1,8 @@
 import os
 import sys
+
 import pygame_gui
-import pygame
+
 from constants import *
 
 pygame.init()
@@ -25,11 +26,10 @@ def exit(manager):
     )
 
 
-def show_text(screen, tex, pos):
-    color = (0, 0, 0)
+def show_text(screen, tex, pos, size=30, color=(0, 0, 0)):
     if tex in "68":
         color = (255, 0, 0)
-    font = pygame.font.Font(None, 30)
+    font = pygame.font.Font(None, size)
     text = font.render(tex, 1, color)
     screen.blit(text, pos)
 
