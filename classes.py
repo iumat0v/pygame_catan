@@ -111,7 +111,6 @@ class Player:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 9:
                     self.list_settlements.append((x, y))
                     self.win_points += 1
-                    print(self.win_points)
                     return True
         else:
             pass
@@ -186,7 +185,7 @@ class GameBot(Player):
                             x, y = board.get_cell((x, y))
                             if board.board[y][x] == 0:
                                 continue
-                            prior += VER[str(board.board[y][x][1])] / 1.5
+                            prior += VER[str(board.board[y][x][1])] * 1.5
                             if tile[board.board[y][x][0]] == 0:
                                 prior += 4
                             elif tile[board.board[y][x][0]] == 1:
@@ -196,7 +195,6 @@ class GameBot(Player):
                             tile[board.board[y][x][0]] += 1
                     b.append((crossroad, prior))
             b = sorted(b, key=lambda x: x[1], reverse=True)
-            print("b:", b)
             self.list_settlements.append(b[0][0])
             self.win_points += 1
         else:
@@ -205,7 +203,7 @@ class GameBot(Player):
     def build_road(self, player_roads, list_crossroad_coord, start=False):
         a = self.when_build_road(player_roads, list_crossroad_coord, start)
         if start:
-            print(self.list_settlements)
+            #print(self.list_settlements)
             x0, y0 = self.list_settlements[0]
             x1, y1 = self.list_settlements[-1]
             b = []

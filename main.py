@@ -408,11 +408,6 @@ label2 = pygame_gui.elements.UILabel(
     text='Bot',
     manager=manager
 )
-'''label_scroll = pygame_gui.elements.UILabel(
-    relative_rect=pygame.Rect(size[0] // 4 + 10, 5, size[0] // 2 - 20, 120),
-    text='!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
-    manager=manager
-)'''
 btn_road = pygame_gui.elements.UIButton(
     relative_rect=pygame.Rect(size[0] - 215, size[1] - 165, 170, 40),
     text="Построить",
