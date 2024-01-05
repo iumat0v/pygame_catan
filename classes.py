@@ -94,21 +94,31 @@ class Board:
 
 class Player:
     def __init__(self):
-        self.wood = 0
+        self.res = {
+                    "Глинянный карьер": 0,
+                    "Гора": 0,
+                    "Лес": 0,
+                    "Пашня": 0,
+                    "Луг": 0
+                }
+        '''self.wood = 0
         self.stone = 0
         self.clay = 0
         self.wheat = 0
-        self.sheep = 0
+        self.sheep = 0'''
         self.win_points = 0
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
 
-    def build_settlement(self, bot_construction, list_crossroad_coord, pos, start=False):
-        a = self.when_build_settlement(bot_construction, list_crossroad_coord, start)
+    def build_settlement(self, bot_construction, board: Board, pos, start=False):
+        a = self.when_build_settlement(bot_construction, board.crossroad_coords, start)
         if start:
             for x, y in a:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 9:
+                    if self.list_settlements:
+                        for tile in self.near_tile((x, y), board):
+                            self.res[tile[0]] += 1
                     self.list_settlements.append((x, y))
                     self.win_points += 1
                     return True
@@ -151,6 +161,18 @@ class Player:
             pass
         return a
 
+    def near_tile(self, crossroad, board: Board):
+        x1, y1 = crossroad
+        a = []
+        for cell in board.lis_c_coords:
+            for x, y in cell:
+                if (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2 * 1.21:
+                    x, y = board.get_cell((x, y))
+                    if board.board[y][x] == 0:
+                        continue
+                    else:
+                        a.append(board.board[y][x])
+        return a
 
 class GameBot(Player):
     def __init__(self):
@@ -209,12 +231,12 @@ class GameBot(Player):
             b = []
             for x, y in a:
                 prior = 0
-                if x0 <= x <= x1 or x0 >= x >= x1:
+                if x0 < x < x1 or x0 > x > x1:
                     prior += 1
-                if y0 <= y <= y1 or y0 >= y >= y1:
+                if y0 < y < y1 or y0 > y > y1:
                     prior += 1
                 b.append([(x, y), prior])
             b = sorted(b, key=lambda x: x[1], reverse=True)
-            self.roads.append([(x1, y1), (x, y)])
+            self.roads.append([(x1, y1), b[0][0]])
         else:
             pass

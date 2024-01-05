@@ -352,7 +352,7 @@ class Game:
     def start(self, pos):
         global TEXT
         if self.start_step == 0:
-            if self.player.build_settlement([], self.board.crossroad_coords, pos, self.starting):
+            if self.player.build_settlement([], self.board, pos, self.starting):
                 self.start_step += 1
                 TEXT = " Вы строите дорогу"
                 return
@@ -370,7 +370,7 @@ class Game:
         self.turn = 0
         if self.start_step == 6:
             TEXT = " Вы строите поселение"
-            if self.player.build_settlement(self.bot.list_settlements, self.board.crossroad_coords, pos, self.starting):
+            if self.player.build_settlement(self.bot.list_settlements, self.board, pos, self.starting):
                 self.start_step += 1
                 TEXT = " Вы строите дорогу"
                 return
@@ -432,6 +432,12 @@ im_rect_player1 = load_image("Прямоугольник.png", (150, 60))
 im_rect_bot = load_image("ПрямоугольникBot.png", (180, 100))
 im_cost = load_image("cost1.png", (370, 200), colorkey=-1)
 im_scroll = load_image("свиток.png", (size[0] // 2, 130), colorkey=-1)
+icon_c = load_image("clay_icon.png", (50, 50), colorkey=-1)
+icon_s = load_image("sheep_icon.png", (50, 50), colorkey=-1)
+icon_st = load_image("stone_icone.png", (50, 50))
+icon_wh = load_image("wheat_icon.jpg", (50, 50))
+icon_w = load_image("wood_icon.png", (50, 50))
+icons = [icon_c, icon_s, icon_st, icon_wh, icon_w]
 # ------------------------------
 
 while run:
@@ -452,6 +458,9 @@ while run:
     screen.blit(im_cost, (size[0] - 370, size[1] - 200))
     screen.blit(im_rect_bot, (3, 0))
     screen.blit(im_scroll, (size[0] // 4, 0))
+    for i in range(len(icons)):
+        screen.blit(icons[i], (60 * i, size[1] - 175))
+    #screen.blit(icon_c, (0, size[1] - 150))
     show_text(screen, TEXT, (size[0] // 4 + 60, 50), color=(50, 50, 50))
     show_text(screen, TITLE, (size[0] * 4 // 9, 30))
     # ---------------
