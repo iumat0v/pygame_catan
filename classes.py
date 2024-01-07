@@ -101,11 +101,6 @@ class Player:
                     "Пашня": 0,
                     "Луг": 0
                 }
-        '''self.wood = 0
-        self.stone = 0
-        self.clay = 0
-        self.wheat = 0
-        self.sheep = 0'''
         self.win_points = 0
         self.list_settlements = []
         self.list_cities = []
@@ -174,18 +169,28 @@ class Player:
                         a.append(board.board[y][x])
         return a
 
+    def get_res(self, a, board):
+        for crossroad in (self.list_settlements + self.list_cities):
+            for tile in self.near_tile(crossroad, board):
+                if tile[1] == a:
+                    if crossroad in self.list_settlements:
+                        self.res[tile[0]] += 1
+                    else:
+                        self.res[tile[0]] += 2
+
 class GameBot(Player):
     def __init__(self):
-        self.wood = 0
-        self.stone = 0
-        self.clay = 0
-        self.wheat = 0
-        self.sheep = 0
+        self.res = {
+            "Глинянный карьер": 0,
+            "Гора": 0,
+            "Лес": 0,
+            "Пашня": 0,
+            "Луг": 0
+        }
         self.win_points = 0
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
-        self.mast = []
 
     def build_settlement(self, player_construction, board: Board, start=False):
         a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
@@ -217,6 +222,9 @@ class GameBot(Player):
                             tile[board.board[y][x][0]] += 1
                     b.append((crossroad, prior))
             b = sorted(b, key=lambda x: x[1], reverse=True)
+            if self.list_settlements:
+                for tile in self.near_tile(b[0][0], board):
+                    self.res[tile[0]] += 1
             self.list_settlements.append(b[0][0])
             self.win_points += 1
         else:
@@ -225,7 +233,6 @@ class GameBot(Player):
     def build_road(self, player_roads, list_crossroad_coord, start=False):
         a = self.when_build_road(player_roads, list_crossroad_coord, start)
         if start:
-            #print(self.list_settlements)
             x0, y0 = self.list_settlements[0]
             x1, y1 = self.list_settlements[-1]
             b = []

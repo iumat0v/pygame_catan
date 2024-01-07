@@ -6,7 +6,6 @@ import pygame_gui
 from constants import *'''
 from classes import *
 from functions import *
-
 '''pygame.init()
 size = (701, 701)
 screen = pygame.display.set_mode(size)'''
@@ -337,17 +336,39 @@ class GameBot(Player):
 class Game:
     def __init__(self):
         self.turn = 0
+        # self.step = 0
         self.board = Board()
         self.player = Player()
         self.bot = GameBot()
-        self.getting_res = False
+        self.getting_res = True
         self.trading = False
         self.building = False
         self.starting = True
         self.start_step = 0
 
-    def play(self):
-        pass
+    def play(self, pos=None, event=None):
+        global TEXT
+        if self.turn == 0:
+            if self.getting_res:
+                a = random.randint(1, 6)
+                a += random.randint(1, 6)
+                self.player.get_res(a, self.board)
+                self.bot.get_res(a, self.board)
+                self.getting_res = False
+                self.trading = True
+                TEXT = "Фаза торговли"
+                return
+            if self.trading:
+                self.trading = False
+                self.building = True
+                TEXT = "Фаза строительства"
+                return
+            if self.building:
+                self.building = False
+                self.getting_res = True
+                pass
+        else:
+            self.turn = 0
 
     def start(self, pos):
         global TEXT
@@ -390,13 +411,11 @@ class Game:
 
 pygame.display.set_caption("Catan")
 clock = pygame.time.Clock()
-# FPS = 10
 start_screen(screen)
 game = Game()
 screen.fill((0, 0, 255))
 run = True
 manager = pygame_gui.UIManager(size)
-# all_sprites = pygame.sprite.Group()
 # ---------------------------
 label1 = pygame_gui.elements.UILabel(
     relative_rect=pygame.Rect(10, size[1] - 70, 150, 60),
@@ -437,7 +456,7 @@ icon_s = load_image("sheep_icon.png", (50, 50), colorkey=-1)
 icon_st = load_image("stone_icone.png", (50, 50))
 icon_wh = load_image("wheat_icon.jpg", (50, 50))
 icon_w = load_image("wood_icon.png", (50, 50))
-icons = [icon_c, icon_s, icon_st, icon_wh, icon_w]
+icons = [icon_c, icon_st, icon_w, icon_wh, icon_s]
 # ------------------------------
 
 while run:
@@ -452,15 +471,18 @@ while run:
             if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                 terminate()
         manager.process_events(event)
+    if not game.starting:
+        game.play()
     screen.fill((0, 0, 255))
     # ---------------
     screen.blit(im_rect_player1, (10, size[1] - 70))
     screen.blit(im_cost, (size[0] - 370, size[1] - 200))
     screen.blit(im_rect_bot, (3, 0))
     screen.blit(im_scroll, (size[0] // 4, 0))
+    a = list(game.player.res.values())
     for i in range(len(icons)):
         screen.blit(icons[i], (60 * i, size[1] - 175))
-    #screen.blit(icon_c, (0, size[1] - 150))
+        show_text(screen, str(a[i]), (60 * i + 25, size[1] - 120))
     show_text(screen, TEXT, (size[0] // 4 + 60, 50), color=(50, 50, 50))
     show_text(screen, TITLE, (size[0] * 4 // 9, 30))
     # ---------------
