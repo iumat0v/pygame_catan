@@ -121,14 +121,25 @@ class Player:
             pass
 
     def build_road(self, bot_roads, list_crossroad_coord, pos, start=False):
-        a = self.when_build_road(bot_roads, list_crossroad_coord, start)
+        a = self.when_build_road(bot_roads, list_crossroad_coord, start=start)
         if start:
             for x, y in a:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 1.21:
                     self.roads.append([self.list_settlements[-1], (x, y)])
                     return True
         else:
-            pass
+            x0, y0 = None, None
+            for x1, y1 in (self.list_settlements + self.list_cities):
+                if (x1 - pos[0]) ** 2 + (y1 - pos[1]) ** 2 <= CELL_SIZE ** 2 // 1.21:
+                    x0, y0 = x1, y1
+                    break
+            a = self.when_build_road(bot_roads, list_crossroad_coord, x1=x0, y1=y0)
+            for x, y in a:
+                if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 1.21:
+                    self.res["Глинянный карьер"] -= 1
+                    self.res["Лес"] -= 1
+                    self.roads.append([(x0, y0), (x, y)])
+                    return True
 
     def when_build_settlement(self, bot_construction, list_crossroad_coord, start=False):
         construction = bot_construction + self.list_settlements + self.list_cities
@@ -144,7 +155,7 @@ class Player:
             pass
         return a
 
-    def when_build_road(self, bot_roads, list_crossroad_coord, start=False):
+    def when_build_road(self, bot_roads, list_crossroad_coord, x1=None, y1=None, start=False):
         a = []
         if start:
             x1, y1 = self.list_settlements[-1]
@@ -153,7 +164,12 @@ class Player:
                     if int(x1) != int(x) or int(y) != int(y1):
                         a.append((x, y))
         else:
-            pass
+            if x1 and y1:
+                for x, y in list_crossroad_coord:
+                    if 0 < (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
+                        b = [(x1, y1), (x, y)]
+                        if b not in bot_roads + self.roads and reversed(b) not in bot_roads + self.roads:
+                            a.append((x, y))
         return a
 
     def near_tile(self, crossroad, board: Board):
@@ -231,7 +247,7 @@ class GameBot(Player):
             pass
 
     def build_road(self, player_roads, list_crossroad_coord, start=False):
-        a = self.when_build_road(player_roads, list_crossroad_coord, start)
+        a = self.when_build_road(player_roads, list_crossroad_coord, start=start)
         if start:
             x0, y0 = self.list_settlements[0]
             x1, y1 = self.list_settlements[-1]

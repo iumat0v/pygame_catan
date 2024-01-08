@@ -346,12 +346,16 @@ class Game:
         self.starting = True
         self.start_step = 0
 
+        self.event = None
+        self.pos = None
+
     def play(self, pos=None, event=None):
         global TEXT
         if self.turn == 0:
             if self.getting_res:
                 a = random.randint(1, 6)
                 a += random.randint(1, 6)
+                # a - сумма очков выпавших на 2-х кубиках
                 self.player.get_res(a, self.board)
                 self.bot.get_res(a, self.board)
                 self.getting_res = False
@@ -364,9 +368,20 @@ class Game:
                 TEXT = "Фаза строительства"
                 return
             if self.building:
+                if event:
+                    self.event = event
+                if pos or self.pos:
+                    if pos:
+                        self.pos = pos
+                    if self.event == 1:
+                        if self.player.res["Глинянный карьер"] > 0 and self.player.res["Лес"] > 0:
+                            if not self.player.build_road(self.bot.roads, self.board.crossroad_coords, self.pos):
+                                return
+                    elif self.event == 2:
+                        pass
                 self.building = False
                 self.getting_res = True
-                pass
+                return
         else:
             self.turn = 0
 
@@ -467,9 +482,22 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if game.starting:
                 game.start(event.pos)
+            else:
+                game.play(pos=event.pos)
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                 terminate()
+            if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if not game.starting:
+                    if event.ui_element == btn_road:
+                        print(1)
+                        game.play(event=1)
+                    elif event.ui_element == btn_settlement:
+                        game.play(event=2)
+                    elif event.ui_element == btn_city:
+                        game.play(event=3)
+                    elif event.ui_element == btn_cards:
+                        game.play(event=4)
         manager.process_events(event)
     if not game.starting:
         game.play()
