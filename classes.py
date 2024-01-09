@@ -118,6 +118,7 @@ class Player:
                     self.win_points += 1
                     return True
         else:
+
             pass
 
     def build_road(self, bot_roads, list_crossroad_coord, pos, start=False):
@@ -152,7 +153,16 @@ class Player:
                 else:
                     a.append((x, y))
         else:
-            pass
+            b = set()
+            for road in self.roads:
+                b.add(road[0])
+                b.add(road[1])
+            for x, y in b:
+                for x1, y1 in construction:
+                    if (x - x1) ** 2 + (y - y1) ** 2 < CELL_SIZE ** 2 * 1.21:
+                        break
+                else:
+                    a.append((x, y))
         return a
 
     def when_build_road(self, bot_roads, list_crossroad_coord, x1=None, y1=None, start=False):

@@ -378,7 +378,13 @@ class Game:
                             if not self.player.build_road(self.bot.roads, self.board.crossroad_coords, self.pos):
                                 return
                     elif self.event == 2:
-                        pass
+                        if (self.player.res["Глинянный карьер"] > 0 and
+                                self.player.res["Лес"] > 0 and
+                                self.player.res["Пашня"] > 0 and
+                                self.player.res["Луг"] > 0):
+                            bot_construction = self.bot.list_settlements + self.bot.list_cities
+                            if not self.player.build_settlement(bot_construction, self.board, pos):
+                                return
                 self.building = False
                 self.getting_res = True
                 return
@@ -490,7 +496,6 @@ while run:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if not game.starting:
                     if event.ui_element == btn_road:
-                        print(1)
                         game.play(event=1)
                     elif event.ui_element == btn_settlement:
                         game.play(event=2)
