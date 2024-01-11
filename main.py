@@ -385,6 +385,7 @@ class Game:
                             bot_construction = self.bot.list_settlements + self.bot.list_cities
                             if not self.player.build_settlement(bot_construction, self.board, pos):
                                 return
+                self.event = None
                 self.building = False
                 self.getting_res = True
                 return

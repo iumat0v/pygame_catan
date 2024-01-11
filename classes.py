@@ -118,8 +118,15 @@ class Player:
                     self.win_points += 1
                     return True
         else:
-
-            pass
+            for x, y in a:
+                if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 9:
+                    self.res["Глинянный карьер"] -= 1
+                    self.res["Лес"] -= 1
+                    self.res["Пашня"] -= 1
+                    self.res["Луг"] -= 1
+                    self.list_settlements.append((x, y))
+                    self.win_points += 1
+                    return True
 
     def build_road(self, bot_roads, list_crossroad_coord, pos, start=False):
         a = self.when_build_road(bot_roads, list_crossroad_coord, start=start)
