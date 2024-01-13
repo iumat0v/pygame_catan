@@ -137,10 +137,13 @@ class Player:
                     return True
         else:
             x0, y0 = None, None
-            for x1, y1 in (self.list_settlements + self.list_cities):
-                if (x1 - pos[0]) ** 2 + (y1 - pos[1]) ** 2 <= CELL_SIZE ** 2 // 1.21:
+            b = set()
+            for road in self.roads:
+                b.add(road[0])
+                b.add(road[1])
+            for x1, y1 in b:
+                if (x1 - pos[0]) ** 2 + (y1 - pos[1]) <= CELL_SIZE ** 2 // 1.21:
                     x0, y0 = x1, y1
-                    break
             a = self.when_build_road(bot_roads, list_crossroad_coord, x1=x0, y1=y0)
             for x, y in a:
                 if (pos[0] - x) ** 2 + (pos[1] - y) ** 2 <= CELL_SIZE ** 2 // 1.21:

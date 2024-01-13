@@ -350,7 +350,7 @@ class Game:
         self.pos = None
 
     def play(self, pos=None, event=None):
-        global TEXT
+        global TEXT, EVENT
         if self.turn == 0:
             if self.getting_res:
                 a = random.randint(1, 6)
@@ -368,27 +368,30 @@ class Game:
                 TEXT = "Фаза строительства"
                 return
             if self.building:
-                if event:
-                    self.event = event
+                '''if event:
+                    self.event = event'''
                 if pos or self.pos:
                     if pos:
                         self.pos = pos
-                    if self.event == 1:
+                    if EVENT == 1:
                         if self.player.res["Глинянный карьер"] > 0 and self.player.res["Лес"] > 0:
                             if not self.player.build_road(self.bot.roads, self.board.crossroad_coords, self.pos):
                                 return
-                    elif self.event == 2:
+                        EVENT = None
+                    if EVENT == 2:
                         if (self.player.res["Глинянный карьер"] > 0 and
                                 self.player.res["Лес"] > 0 and
                                 self.player.res["Пашня"] > 0 and
                                 self.player.res["Луг"] > 0):
                             bot_construction = self.bot.list_settlements + self.bot.list_cities
-                            if not self.player.build_settlement(bot_construction, self.board, pos):
+                            if not self.player.build_settlement(bot_construction, self.board, self.pos):
                                 return
-                self.event = None
-                self.building = False
-                self.getting_res = True
-                return
+                        EVENT = None
+                if not EVENT:
+                    self.pos = None
+                    self.building = False
+                    self.getting_res = True
+                    return
         else:
             self.turn = 0
 
@@ -497,13 +500,14 @@ while run:
             if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                 if not game.starting:
                     if event.ui_element == btn_road:
-                        game.play(event=1)
+                        print("btn_road")
+                        EVENT = 1
                     elif event.ui_element == btn_settlement:
-                        game.play(event=2)
+                        EVENT = 2
                     elif event.ui_element == btn_city:
-                        game.play(event=3)
+                        EVENT = 3
                     elif event.ui_element == btn_cards:
-                        game.play(event=4)
+                        EVENT = 4
         manager.process_events(event)
     if not game.starting:
         game.play()
@@ -525,4 +529,5 @@ while run:
     manager.draw_ui(screen)
     clock.tick(FPS)
     pygame.display.flip()
+    print("event:", game.event, "pos:", game.pos, "EVENT:", EVENT)
 pygame.quit()
