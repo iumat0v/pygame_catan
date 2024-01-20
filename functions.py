@@ -88,3 +88,7 @@ def start_screen(screen):
         pygame.display.flip()
         #clock.tick(FPS)
     pass
+
+def finish_screen(screen):
+    pass
+

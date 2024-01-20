@@ -64,13 +64,13 @@ class Board:
         for citi in player_construction[player_i:]:
             pygame.draw.circle(screen, (255, 0, 0), citi, CELL_SIZE // 3)
         for settlement in bot_construction[:bot_i]:
-            pygame.draw.circle(screen, (0, 0, 255), settlement, CELL_SIZE // 4)
+            pygame.draw.circle(screen, (0, 255, 0), settlement, CELL_SIZE // 4)
         for citi in bot_construction[bot_i:]:
-            pygame.draw.circle(screen, (0, 0, 255), citi, CELL_SIZE // 3)
+            pygame.draw.circle(screen, (0, 255, 0), citi, CELL_SIZE // 3)
         for point1, point2 in player_roads:
             pygame.draw.line(screen, (255, 0, 0), point1, point2, 5)
         for point1, point2 in bot_roads:
-            pygame.draw.line(screen, (0, 0, 255), point1, point2, 5)
+            pygame.draw.line(screen, (0, 255, 0), point1, point2, 5)
     # __________________________________________________________________
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
@@ -141,8 +141,9 @@ class Player:
             for road in self.roads:
                 b.add(road[0])
                 b.add(road[1])
+            print("b:", b)
             for x1, y1 in b:
-                if (x1 - pos[0]) ** 2 + (y1 - pos[1]) <= CELL_SIZE ** 2 // 1.21:
+                if (x1 - pos[0]) ** 2 + (y1 - pos[1]) ** 2 <= CELL_SIZE ** 2 // 1.21:
                     x0, y0 = x1, y1
             a = self.when_build_road(bot_roads, list_crossroad_coord, x1=x0, y1=y0)
             for x, y in a:
@@ -150,7 +151,18 @@ class Player:
                     self.res["Глинянный карьер"] -= 1
                     self.res["Лес"] -= 1
                     self.roads.append([(x0, y0), (x, y)])
+                    print("YES!")
                     return True
+
+    def build_citi(self, pos):
+        for x, y in self.list_settlements:
+            if (x - pos[0]) ** 2 + (y - pos[1]) ** 2 <= CELL_SIZE ** 2 // 1.44:
+                del self.list_settlements[self.list_settlements.index((x, y))]
+                self.list_cities.append((x, y))
+                self.win_points += 1
+                self.res["Гора"] -= 3
+                self.res["Пашня"] -= 2
+                return True
 
     def when_build_settlement(self, bot_construction, list_crossroad_coord, start=False):
         construction = bot_construction + self.list_settlements + self.list_cities
@@ -214,6 +226,7 @@ class Player:
                     else:
                         self.res[tile[0]] += 2
 
+
 class GameBot(Player):
     def __init__(self):
         self.res = {
@@ -227,19 +240,19 @@ class GameBot(Player):
         self.list_settlements = []
         self.list_cities = []
         self.roads = []
-
-    def build_settlement(self, player_construction, board: Board, start=False):
-        a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
-        b = []
-        if start:
-            for crossroad in a:
-                tile = {
+        self.tile = {
                     "Глинянный карьер": 0,
                     "Гора": 0,
                     "Лес": 0,
                     "Пашня": 0,
                     "Луг": 0
                 }
+
+    def build_settlement(self, player_construction, board: Board, start=False):
+        a = self.when_build_settlement(player_construction, board.crossroad_coords, start)
+        b = []
+        if start:
+            for crossroad in a:
                 x1, y1 = crossroad
                 prior = 0
                 for cell in board.lis_c_coords:
@@ -249,13 +262,13 @@ class GameBot(Player):
                             if board.board[y][x] == 0:
                                 continue
                             prior += VER[str(board.board[y][x][1])] * 1.5
-                            if tile[board.board[y][x][0]] == 0:
+                            if self.tile[board.board[y][x][0]] == 0:
                                 prior += 4
-                            elif tile[board.board[y][x][0]] == 1:
+                            elif self.tile[board.board[y][x][0]] == 1:
                                 prior += 0
-                            elif tile[board.board[y][x][0]] == 2:
+                            elif self.tile[board.board[y][x][0]] == 2:
                                 prior += -3
-                            tile[board.board[y][x][0]] += 1
+                            self.tile[board.board[y][x][0]] += 1
                     b.append((crossroad, prior))
             b = sorted(b, key=lambda x: x[1], reverse=True)
             if self.list_settlements:
@@ -264,7 +277,14 @@ class GameBot(Player):
             self.list_settlements.append(b[0][0])
             self.win_points += 1
         else:
-            pass
+            if a:
+                x, y = a[0]
+                self.res["Глинянный карьер"] -= 1
+                self.res["Лес"] -= 1
+                self.res["Пашня"] -= 1
+                self.res["Луг"] -= 1
+                self.list_settlements.append((x, y))
+                self.win_points += 1
 
     def build_road(self, player_roads, list_crossroad_coord, start=False):
         a = self.when_build_road(player_roads, list_crossroad_coord, start=start)
@@ -282,4 +302,17 @@ class GameBot(Player):
             b = sorted(b, key=lambda x: x[1], reverse=True)
             self.roads.append([(x1, y1), b[0][0]])
         else:
-            pass
+            b = set()
+            for road in self.roads:
+                b.add(road[0])
+                b.add(road[1])
+            for crossroad in b:
+                x, y = crossroad
+                a = self.when_build_road(player_roads, list_crossroad_coord, x, y)
+                if a:
+                    break
+            if a:
+                self.roads.append([(x, y), a[0]])
+                self.res["Глинянный карьер"] -= 1
+                self.res["Лес"] -= 1
+
