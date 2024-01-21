@@ -28,8 +28,8 @@ FPS = 10
 TITLE = "Старт"
 TEXT = " Вы строите поселение"
 EVENT = None
-PRODUCT1 = None
-PRODUCT2 = None
+PRODUCT1 = "Лес"
+PRODUCT2 = "Лес"
 res_tile = {
     "Лес": "Лес",
     "Пшеница": "Пашня",

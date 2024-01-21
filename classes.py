@@ -73,7 +73,6 @@ class Board:
     # __________________________________________________________________
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
-        self.on_click(cell)
 
     def get_cell(self, mouse_pos):
         xm, ym = mouse_pos
@@ -146,7 +145,6 @@ class Player:
                     self.res["Глинянный карьер"] -= 1
                     self.res["Лес"] -= 1
                     self.roads.append([(x0, y0), (x, y)])
-                    print("YES!")
                     return True
 
     def build_citi(self, pos):
@@ -324,5 +322,4 @@ class GameBot(Player):
             del self.list_settlements[0]
             self.res["Пашня"] -= 2
             self.res["Гора"] -= 3
-
-
+            self.win_points += 1

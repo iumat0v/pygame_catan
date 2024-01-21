@@ -128,7 +128,7 @@ music_list = ["music/1.mp3", "music/2.mp3"]
 pygame.time.set_timer(MYEVENTTYPE, 60000)
 pygame.display.set_caption("Catan")
 clock = pygame.time.Clock()
-start_screen(screen)
+NAME = start_screen(screen)
 pygame.mixer.music.load("music/2.mp3")
 pygame.mixer.music.play(-1)
 game = Game()
@@ -259,10 +259,20 @@ while run:
         text = "Вы проиграли!"
         if game.player.win_points == 10:
             text = " Вы выиграли!"
+        db = sqlite3.connect("records.db")
+        cur = db.cursor()
+        winner = "Игрок"
+        if game.bot.win_points == 10:
+            winner = "Бот"
+        t = f'''insert into records(name, win_points_bot, win_points_player, winner) values('{NAME}',
+{game.bot.win_points}, {game.player.win_points}, '{winner}');'''
+        cur.execute(t)
+        db.commit()
+        db.close()
         game.player = Player()
         game.bot = GameBot()
         game.starting = True
         game.step = 0
         TEXT = " Вы строите поселение"
-        finish_screen(screen, text)
+        NAME = finish_screen(screen, text)
 pygame.quit()
