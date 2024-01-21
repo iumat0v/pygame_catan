@@ -80,6 +80,8 @@ def start_screen(screen):
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == switch_start:
                         pygame.mixer.music.stop()
+                        pygame.mixer.music.load("music/2.mp3")
+                        pygame.mixer.music.play(-1)
                         return
                     if event.ui_element == switch_exit:
                         exit(manager)
@@ -91,6 +93,8 @@ def start_screen(screen):
         pygame.display.flip()
 
 def finish_screen(screen, text):
+    pygame.mixer.music.load("music/Заставка.mp3")
+    pygame.mixer.music.play(-1)
     manager = pygame_gui.UIManager((size[0] - 100, size[1] - 100))
     fon = load_image("fon.jpg", size)
     screen.blit(fon, (0, 0))

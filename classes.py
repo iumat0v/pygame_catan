@@ -51,7 +51,6 @@ class Board:
                 p4 = (x0 + a * 1.73, y0 + a)
                 p5 = (x0 + (a * 1.73 / 2), y0 + (3 * a) / 2)
                 p6 = (x0, y0 + a)
-                #r = (1.73 * a) / 2
                 if len(self.lis_c_coords) < 19:
                     self.lis_c_coords[y][x] = (x0 + r + 1, y0 + r / 1.73 + 2)
                 for point in [p1, p2, p3, p4, p5, p6]:
@@ -86,9 +85,6 @@ class Board:
                 if d <= r:
                     return (x, y)
         return None
-
-    def on_click(self, cell_coords):
-        print(cell_coords)
     # _____________________________________________________
 
 
@@ -141,7 +137,6 @@ class Player:
             for road in self.roads:
                 b.add(road[0])
                 b.add(road[1])
-            print("b:", b)
             for x1, y1 in b:
                 if (x1 - pos[0]) ** 2 + (y1 - pos[1]) ** 2 <= CELL_SIZE ** 2 // 1.21:
                     x0, y0 = x1, y1
