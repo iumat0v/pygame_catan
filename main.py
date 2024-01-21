@@ -3,17 +3,15 @@ import sys
 import os
 import random
 import pygame_gui
-from constants import *'''
+from constants import *
 import pygame
-import pygame_gui
+import pygame_gui'''
 
 from classes import *
 from functions import *
 '''pygame.init()
 size = (701, 701)
 screen = pygame.display.set_mode(size)'''
-
-
 '''def terminate():
     pygame.quit()
     sys.exit()
@@ -358,8 +356,8 @@ class Game:
                 self.step += 1
                 TEXT = "Фаза торговли"
                 return
-            if self.step == 1:
-                return
+            '''if self.step == 1:
+                return'''
             if self.step == 2:
                 TEXT = "Фаза строительства"
                 if pos or self.pos:
@@ -394,20 +392,18 @@ class Game:
             a += random.randint(1, 6)
             self.player.get_res(a, self.board)
             self.bot.get_res(a, self.board)
+            self.bot.trade()
             if (self.bot.res["Глинянный карьер"] > 0 and
                     self.bot.res["Лес"] > 0 and
                     self.bot.res["Пашня"] > 0 and
                     self.bot.res["Луг"] > 0):
                 player_construction = self.player.list_settlements + self.player.list_cities
                 self.bot.build_settlement(player_construction, self.board)
-                print("поселение!!!!!")
             if self.bot.res["Пашня"] > 1 and self.bot.res["Гора"] > 2:
-                pass
-                # self.bot.build_citi()
+                self.bot.build_citi()
             if self.bot.res["Глинянный карьер"] > 0 and self.bot.res["Лес"] > 0:
                 if not self.bot.when_build_settlement(self.player.list_settlements + self.player.list_cities,
                                                       self.board.crossroad_coords):
-                    print("дорога")
                     self.bot.build_road(self.player.roads, self.board.crossroad_coords)
             self.turn = 0
 
@@ -451,12 +447,22 @@ class Game:
         self.board.render(screen, pr, br, pc, pi, bc, bi)
 
     def trade(self):
-        pass
+        if not (PRODUCT1 and PRODUCT2):
+            return
+        if self.player.res[res_tile[PRODUCT1]] > 3:
+            self.player.res[res_tile[PRODUCT1]] -= 4
+            self.player.res[res_tile[PRODUCT2]] += 1
 
 
+MYEVENTTYPE = pygame.USEREVENT + 10
+music_const = 1
+music_list = ["music/1.mp3", "music/2.mp3"]
+pygame.time.set_timer(MYEVENTTYPE, 60000)
 pygame.display.set_caption("Catan")
 clock = pygame.time.Clock()
 start_screen(screen)
+pygame.mixer.music.load("music/2.mp3")
+pygame.mixer.music.play(-1)
 game = Game()
 screen.fill((0, 0, 255))
 run = True
@@ -529,6 +535,11 @@ while run:
                 game.start(event.pos)
             else:
                 game.play(pos=event.pos)
+        if event.type == MYEVENTTYPE:
+            music_const = (music_const + 1) % 2
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load(music_list[music_const])
+            pygame.mixer.music.play(-1)
         if event.type == pygame.USEREVENT:
             if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
                 terminate()
@@ -547,13 +558,12 @@ while run:
                         EVENT = 3
                     elif event.ui_element == btn_step:
                         if game.turn == 0:
-                            print(game.step)
                             game.step += 1
-                            print(game.step)
                     elif event.ui_element == btn_trade:
                         if game.step == 1 and game.turn == 0:
                             game.trade()
-        manager.process_events(event)
+        if event.type != MYEVENTTYPE:
+            manager.process_events(event)
     if not game.starting:
         game.play()
     screen.fill((0, 0, 255))
@@ -579,5 +589,8 @@ while run:
     pygame.display.flip()
     print("pos:", game.pos, "EVENT:", EVENT, "step:", game.step, PRODUCT1, PRODUCT2)
     if game.player.win_points == 10 or game.bot.win_points == 10:
-        finish_screen(screen)
+        text = "Вы проиграли!"
+        if game.player.win_points == 10:
+            text = " Вы выиграли!"
+        finish_screen(screen, text)
 pygame.quit()

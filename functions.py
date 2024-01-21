@@ -53,6 +53,8 @@ def load_image(name, size, angle=0, colorkey=None, direct="images"):
 
 
 def start_screen(screen):
+    pygame.mixer.music.load("music/Заставка.mp3")
+    pygame.mixer.music.play(-1)
     manager = pygame_gui.UIManager(size)
     fon = load_image("fon.jpg", size)
     screen.blit(fon, (0, 0))
@@ -77,6 +79,7 @@ def start_screen(screen):
                     terminate()
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == switch_start:
+                        pygame.mixer.music.stop()
                         return
                     if event.ui_element == switch_exit:
                         exit(manager)
@@ -86,9 +89,32 @@ def start_screen(screen):
         manager.update(time_delta)
         manager.draw_ui(screen)
         pygame.display.flip()
-        #clock.tick(FPS)
-    pass
 
-def finish_screen(screen):
-    pass
+def finish_screen(screen, text):
+    manager = pygame_gui.UIManager((size[0] - 100, size[1] - 100))
+    fon = load_image("fon.jpg", size)
+    screen.blit(fon, (0, 0))
+    btn = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((10, size[1] - 160), (150, 50)),
+        text=text,
+        manager=manager
+    )
+    clock = pygame.time.Clock()
+    while True:
+        time_delta = clock.tick(60) / 1000
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit(manager)
+            if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_CONFIRMATION_DIALOG_CONFIRMED:
+                    terminate()
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == btn:
+                        start_screen(screen)
+                        return
+            manager.process_events(event)
+        screen.blit(fon, (0, 0))
+        manager.update(time_delta)
+        manager.draw_ui(screen)
+        pygame.display.flip()
 

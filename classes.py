@@ -200,7 +200,7 @@ class Player:
                 for x, y in list_crossroad_coord:
                     if 0 < (x - x1) ** 2 + (y - y1) ** 2 <= CELL_SIZE ** 2:
                         b = [(x1, y1), (x, y)]
-                        if b not in bot_roads + self.roads and reversed(b) not in bot_roads + self.roads:
+                        if (b not in (bot_roads + self.roads)) and (reversed(b) not in (bot_roads + self.roads)):
                             a.append((x, y))
         return a
 
@@ -315,4 +315,19 @@ class GameBot(Player):
                 self.roads.append([(x, y), a[0]])
                 self.res["Глинянный карьер"] -= 1
                 self.res["Лес"] -= 1
+
+    def trade(self):
+        b = list(self.res.items())
+        b.sort(key=lambda x: x[1],reverse=True)
+        if b[0][1] > 4:
+            self.res[b[0][0]] -= 4
+            self.res[b[-1][0]] += 1
+
+    def build_citi(self):
+        if self.list_settlements:
+            self.list_cities.append(self.list_settlements[0])
+            del self.list_settlements[0]
+            self.res["Пашня"] -= 2
+            self.res["Гора"] -= 3
+
 
